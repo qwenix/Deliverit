@@ -1,4 +1,4 @@
 # Deliverit
 Branch name example:
-feature/ShortDescription
-bugfix/ShortDescription
+* feature/ShortDescription
+* bugfix/ShortDescription
