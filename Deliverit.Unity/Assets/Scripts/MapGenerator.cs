@@ -1,8 +1,15 @@
+using System.Collections.Generic;
+using System.Linq;
+using Cinemachine;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
 {
     public int wagonRoomsCount;
+
+    public GameObject player;
+
+    public CinemachineVirtualCamera camera;
 
     public int size;
 
@@ -11,6 +18,9 @@ public class MapGenerator : MonoBehaviour
     public GameObject room;
 
     public GameObject hall;
+
+    [SerializeField]
+    private ContinuousMovement wagonMovement;
 
     private float distanceBetweenRooms;
 
@@ -45,7 +55,7 @@ public class MapGenerator : MonoBehaviour
 
     private void InitializeProperties()
     {
-        distanceBetweenRooms = hall.transform.localScale.x + hall.transform.localScale.x;
+        distanceBetweenRooms = hall.transform.localScale.x + room.transform.localScale.x;
         hallOffset = distanceBetweenRooms / 2;
 
         //
@@ -59,6 +69,33 @@ public class MapGenerator : MonoBehaviour
             new Vector2Int(1, 2),
             new Vector2Int(2, 2)
         };
+
+        InitializeWagon();
+        InitializePlayer();
+    }
+
+    private void InitializeWagon()
+    {
+        ContinuousMovement wagonMovementInstance = Instantiate(wagonMovement);
+        wagonMovementInstance.gameObject.SetActive(true);
+        var pathNodes = new List<Vector3>(path.Length);
+        foreach (Vector2Int pathNode in path)
+        {
+            var position = new Vector3(pathNode.x * distanceBetweenRooms, 0, pathNode.y * distanceBetweenRooms);
+            pathNodes.Add(position);
+        }
+
+        wagonMovementInstance.SetupPathNodes(pathNodes);
+    }
+
+    private void InitializePlayer()
+    {
+        GameObject playerInstance = Instantiate(this.player);
+        playerInstance.gameObject.SetActive(true);
+        camera.Follow = playerInstance.transform;
+
+        Vector2Int start = path.First();
+        playerInstance.transform.position = new Vector3(start.x * distanceBetweenRooms, 1, start.y * distanceBetweenRooms);
     }
 
     private void InstantiateRoom(int x, int z)
@@ -78,7 +115,7 @@ public class MapGenerator : MonoBehaviour
 
     private void InstantiateHall(int x, int z, float xOffset, float zOffset)
     {
-        var position = new Vector3(x * distanceBetweenRooms + xOffset, 0.0f, z * distanceBetweenRooms + zOffset);
+        var position = new Vector3(x * distanceBetweenRooms + xOffset, hall.transform.position.y, z * distanceBetweenRooms + zOffset);
         hall.transform.Rotate(0.0f, 90.0f, 0.0f);
         InstantiateMapObject(hall, position);
     }
